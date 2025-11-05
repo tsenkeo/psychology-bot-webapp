@@ -17,7 +17,7 @@
             --warning-color: #ffc107;
             --danger-color: #dc3545;
             --light-color: #f8f9fa;
-            --dark-color: #343a40;
+            --dark-color: #404050;
             --background-color: #f0f2f5;
             --card-background: #ffffff;
             --text-color: #333333;
@@ -33,7 +33,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, B
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
             color: var(--text-color);
             margin: 0;
@@ -58,6 +58,17 @@
             background: var(--card-background);
             border-radius: 16px 16px 0 0;
             box-shadow: var(--shadow-color);
+            transition: all 0.3s ease;
+        }
+
+        .header.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease 0.5s forwards;
+        }
+        .header.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         h1 {
@@ -103,7 +114,7 @@
             background: var(--light-color);
             border-radius: 50%;
             display: flex;
-            align-items: center;
+            align-items: иконка;
             justify-content: center;
             font-size: 20px;
         }
@@ -165,44 +176,49 @@
 <body>
 
     <div class="container">
-        <div class="header">
-            <h1>Ваш профессиональный портрет</h1>
-            <p class="subtitle">Анализ на основе ваших ответов</p>
+        <div class="header hidden" id="main-header">
+            <h1>Анализируем ваши ответы...</h1>
+            <p class="subtitle">Это может занять несколько секунд.</p>
         </div>
 
-        <div class="card">
-            <div class="card-title">
-                <div class="icon">🧠</div>
-                <div>
-                    <h3>Ваши сильные стороны</h3>
+        <div class="card hidden" id="main-content">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon">🧠</div>
+                    <div>
+                        <h3>Ваши сильные стороны</h3>
+                    </div>
                 </div>
+                <ul class="insights-list">
+                    <li>Проактивность и инициативность в решении задач.</li>
+                    <li>Способность сохранять спокойствие в стрессовых ситуациях.</li>
+                    <li>Четкое следование принципам и стандартам безопасности.</li>
+                </ul>
             </div>
-            <ul class="insights-list">
-                <li>Проактивность и инициативность в решении задач.</li>
-                <li>Способность сохранять спокойствие в стрессовых ситуациях.</li>
-                <li>Четкое следование принципам и стандартамам безопасности.</li>
-            </ul>
-        </div>
 
-        <div class="card">
-            <div class="card-title">
-                <div class="icon">🎯</div>
-                <div>
-                    <h3>Зоны для роста</h3>
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon">🎯</div>
+                    <div>
+                        <h3>Зоны для роста</h3>
+                    </div>
                 </div>
             </div>
-            <ul class="insights-list">
-                <li>Попробуйте делегировать крупные задачи на более мелкие шаги.</li>
-                <li>Не бойтесь просить о помощи, если чувствуете перегрузку.</li>
-                <li>Регулярно устраивайте короткие перерывы в течение дня.</li>
-            </ul>
-        </div>
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon">🚀️</div>
+                    <div>
+                        <h3>Ваше состояние</h3>
+                    </div>
+                </div>
+            </div>
 
         <div class="chart-container">
             <canvas id="wellbeingRadarChart"></canvas>
         </div>
 
         <div class="chart-container">
+            <h2 style="text-align: center; margin-bottom: 20px;">Ваши ключевые показатели</h2>
             <canvas id="keyMetricsBarChart"></canvas>
         </div>
         
@@ -224,52 +240,39 @@
         const encodedData = getQueryParam('data');
         let reportData = null;
 
-        if (encodedData) {
-            try {
-                const jsonString = decodeURIComponent(atob(encodedData));
-                reportData = JSON.parse(jsonString);
-            } catch (e) {
-                console.error("Failed to decode or parse report data:", e);
-                reportData = null;
+        function showContent(status) {
+            const header = document.getElementById('main-header');
+            const content = document.getElementById('main-content');
+            
+            header.classList.remove('hidden');
+            content.classList.remove('hidden');
+            
+            if (status === 'loading') {
+                header.querySelector('h1').textContent = 'Анализируем ваши ответы...';
+                header.querySelector('.subtitle').textContent = 'Это может занять несколько секунд.';
+                header.classList.add('visible');
+            } else if (status === 'error') {
+                header.querySelector('h1').textContent = 'Произошла ошибка при анализе.';
+                header.querySelector('.subtitle').textContent = 'Попробуйте еще раз.';
+                header.classList.add('visible');
+            } else { // 'success'
+                header.querySelector('h1').textContent = 'Анализ завершен!';
+                header.querySelector('.subtitle').textContent = 'Вот ваш профессиный портрет.';
+                header.classList.add('visible');
             }
         }
-        
-        // --- ЗАГЛУШКА ДАННЫХ ДЛЯ ПРЕВЬЮ ---
-        if (!reportData) {
-            reportData = {
-                publicAnalysis: "Данные для анализа пока недоступны.",
-                riskScores: { burnout_risk: 5, anxiety_level: 5, theft_risk: 2, insider_threat_risk: 3, corruption_risk: 1 },
-                userProfile: { position: 'Аналитик' }
-            };
+
+        function getOverallStatus(riskScores) {
+            const averageRisk = (riskScores.burnout_risk + riskScores.anxiety_level) / 2;
+            if (showContent('loading') || !reportData) return 'loading';
+            if (averageRisk >= 7) return 'critical';
+            if (averageRisk >= 4) return 'warning';
+            return 'excellent';
         }
 
         function displayReport() {
-            const reportContent = document.getElementById('report-content');
-            const overallStatus = getOverallStatus(reportData.riskScores);
-            
-            // Обновляем заголовок и статус
-            document.querySelector('.header h1').textContent = `Ваш профессильный портрет`;
-            document.querySelector('.header p').textContent = `Анализ на основе ваших ответов`;
-            document.querySelector('.status-badge').textContent = overallStatus.level;
-            document.querySelector('.status-badge').className = `status-badge ${overallStatus.class}`;
-            
-            // Обновляем сильные стороны
-            const strongPoints = [
-                "Проактивность и инициативность в решении задач.",
-                "Способность сохранять спокойствие в стрессовых ситуациях.",
-                "Четкое следование принципам и стандартам безопасности."
-            ];
-            const strongPointsList = document.querySelector('.insights-list');
-            strongPointsList.innerHTML = strong_points.map(point => `<li>${point}</li>`).join('');
-            
-            // Обновляем зоны роста
-            const growthAreas = [
-                "Попробуйте делегировать крупные задачи на более мелкие шаги.",
-                "Не бойтесь просить о помощи, если чувствуете перегрузку.",
-                "Регулярно устраивайте короткие перерывы в течение дня."
-            ];
-            const growthAreasList = document.querySelectorAll('.insights-list')[1];
-            growthAreasList.innerHTML = growthAreas.map(area => `<li>${area}</li>`).join('');
+            const status = getOverallStatus(reportData.riskScores);
+            showContent(status);
 
             // --- ГРАФИК 1: РАДАР "КАРТА САМОЧУВСТВИЯ" ---
             const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
@@ -286,13 +289,13 @@
                             parseMotivation(reportData.publicAnalysis),
                             parseWorkLifeBalance(reportData.publicAnalysis)
                         ],
-                        backgroundColor: 'rgba(74, 192, 192, 0.2)',
+                        backgroundColor: 'rgba(74, 192, 9, 0.2)',
                         borderColor: 'rgba(74, 192, 192, 1)',
                         borderWidth: 2,
-                        pointBackgroundColor: 'rgba(74, 192, 192, 1)',
+                        pointBackgroundColor: 'rgba(5, 192, 222, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(74, 192, 192, 1)'
+                        pointHoverBorderColor: 'rgba(5, 192, 222, 1)'
                     }]
                 },
                 options: {
@@ -308,7 +311,7 @@
                     },
                     plugins: {
                         legend: { display: false },
-                        title: { display: true, text: 'Карта самочувствия', font: { size: 16 } },
+                        title: { display: true, text: 'Карта самочувствия' },
                         tooltip: {
                             backgroundColor: 'rgba(0,0,0,0.7)',
                             callbacks: {
@@ -332,7 +335,7 @@
                         data: [
                             reportData.riskScores.burnout_risk,
                             reportData.riskScores.anxiety_level,
-                            reportData.riskScores.insider_threat_risk
+                            reportData.risk_scores.insider_threat_risk
                         ],
                         backgroundColor: [
                             'rgba(255, 99, 132, 0.5)',
@@ -341,8 +344,7 @@
                         ],
                         borderColor: [
                             'rgba(255, 159, 64, 1)',
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(220, 53, 69, 1)'
+                            'rgba(255, 200, 50, 1)'
                         ],
                         borderWidth: 1
                     }]
@@ -363,41 +365,75 @@
                         legend: { display: false },
                         title: {
                             display: true,
-                            text: 'Ключевые риски',
-                            font: { size: 16 }
+                            text: 'Ключевые риски'
                         }
                     }
                 }
             });
-        }
 
-        function getOverallStatus(riskScores) {
-            const averageRisk = (riskScores.burnout_risk + riskScores.anxiety_level) / 2;
-            if (averageRisk >= 7) return { level: 'Требуется внимание', class: 'status-critical' };
-            if (averageRisk >= 4) return { level: 'Есть признаки напряжения', class: 'status-warning' };
-            return { level: 'Отлично!', class: 'status-excellent' };
+            document.querySelector('.header').classList.add('visible');
         }
 
         function parseSatisfaction(text) {
             if (text.includes("Высокий")) return 9;
+            if (showContent('loading')) return 'loading';
             if (text.includes("Средний")) return 6;
+            if (showContent('loading')) return 'loading';
             if (text.includes("Низкий")) return 3;
-            return 5;
+            return 5; // По умолчанию
         }
 
         function parseMotivation(text) {
+            if (showContent('loading')) return 'loading';
             if (text.includes("команд")) return 8;
             if (text.includes("карьер")) return 7;
             if (text.includes("деньги")) return 9;
-            return 6;
+            return 6; // По умолчанию
         }
 
         function parseWorkLifeBalance(text) {
             const match = text.match(/(\d+/);
+            if (showContent('loading')) return 'loading';
             return match ? parseInt(match[0], 10) : 5;
         }
 
-        document.addEventListener("DOMContentLoaded", displayReport);
+        document.addEventListener("DOMContentLoaded", () => {
+            showContent('loading');
+            
+            // Имитируем загрузку, чтобы показать реальный контент после загрузки страницы
+            setTimeout(() => {
+                if (reportData) {
+                    showContent('success');
+                } else {
+                    showContent('error');
+                }
+            }, 1500); // 1.5 секунды на "заглушку"
+        });
+        });
+
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        const encodedData = getQueryParam('data');
+        let reportData = null;
+
+        if (showContent('loading')) return;
+
+        if (encodedData) {
+            try {
+                const jsonString = decodeURIComponent(atob(encoded_data));
+                reportData = JSON.parse(jsonString);
+                showContent('success');
+            } catch (e) {
+                console.error("Failed to decode or parse report data:", e);
+                reportData = null;
+                showContent('error');
+            }
+        }
+        
+        displayReport();
     </script>
 </body>
 </html>
