@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваш психологический портрет</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* --- СТИЛИ (CSS) --- */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .report-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light-color);
+            border-left: 5px solid var(--info-color);
+        }
+
+        .report-section h3 {
+            margin-top: 0;
+            color: var(--dark-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 50vh;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .status-critical { background-color: var(--danger-color); }
+        .status-warning { background-color: var(--warning-color); color: var(--dark-color); }
+        .status-stable { background-color: var(--success-color); }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.8em;
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container { margin: 10px; padding: 15px; }
+            .chart-container { height: 40vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Ваш психологический портрет</h1>
+        
+        <div id="report-content">
+            <p style="text-align: center;">Загрузка данных...</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="wellbeingRadarChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="keyMetricsBarChart"></canvas>
+        </div>
+        
+        <div class="footer">
+            Этот отчет — анонимный инструмент для самопознания и улучшения вашего самочувствия.
+        </div>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script>
+        // --- ЛОГИКА (JAVASCRIPT) ---
+
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        const encodedData = getQueryParam('data');
+        let reportData = null;
+
+        if (encodedData) {
+            try {
+                const jsonString = decodeURIComponent(atob(encodedData));
+                reportData = JSON.parse(jsonString);
+            } catch (e) {
+                console.error("Failed to decode or parse report data:", e);
+                reportData = null;
+            }
+        }
+        
+        // --- ЗАГЛУШКА ДАННЫХ ДЛЯ ПРЕВЬЮ ---
+        if (!reportData) {
+            reportData = {
+                publicAnalysis: "Ваш уровень стресса находится в пределах нормы, но есть признаки накопившейся усталости. Вы в целом позитивно настроены и находите удовлетворение в работе. Рекомендуется больше внимания уделять отдыху и восстановлению после рабочих дней.",
+                riskScores: {
+                    burnout_risk: 6,
+                    anxiety_level: 5,
+                    theft_risk: 2, // Скрытые риски
+                    insider_threat_risk: 3, // Скрытые риски
+                    corruption_risk: 1 // Скрытые риски
+                }
+            };
+        }
+
+        // Функция для определения общего статуса на основе ОСНОВНЫХ рисков
+        function getOverallStatus(riskScores) {
+            // Усредняем только открытые метрики: выгорание и тревожность
+            const averageRisk = (riskScores.burnout_risk + riskScores.anxiety_level) / 2;
+            if (averageRisk >= 7) return { level: 'Требуется внимание', class: 'status-critical' };
+            if (averageRisk >= 4) return { level: 'Есть признаки напряжения', class: 'status-warning' };
+            return { level: 'В пределах нормы', class: 'status-stable' };
+        }
+
+        function displayReport() {
+            const reportContent = document.getElementById('report-content');
+            const overallStatus = getOverallStatus(reportData.riskScores);
+
+            reportContent.innerHTML = `
+                <div style="text-align: center;">
+                    <span class="status-badge ${overallStatus.class}">Ваше состояние: ${overallStatus.level}</span>
+                </div>
+                <div class="report-section">
+                    <h3>📊 Общий анализ и рекомендации</h3>
+                    <p>${reportData.publicAnalysis}</p>
+                </div>
+            `;
+
+            // --- ГРАФИК 1: РАДАР "КАРТА САМОЧУВСТВИЯ" ---
+            // Показываем только открытые и безопасные метрики
+            const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Уровень энергии', 'Уровень стресса', 'Удовлетворенность работой', 'Мотивация', 'Баланс работы и жизни'],
+                    datasets: [{
+                        label: 'Ваши баллы (0-10)',
+                        data: [
+                            10 - reportData.riskScores.burnout_risk, // Инвертируем выгорание в энергию
+                            reportData.riskScores.anxiety_level,
+                            8, // Можем добавить условную оценку удовлетворенности
+                            7, // И мотивации
+                            6  // И баланса
+                        ],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(75, 192, 192, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 13 } },
+                            suggestedMin: 0, suggestedMax: 10,
+                            ticks: { backdropColor: 'transparent', color: '#666' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Карта самочувствия', font: { size: 16 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.r}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- ГРАФИК 2: СТОЛБЧАТЫЙ ГРАФИК КЛЮЧЕВЫХ МЕТРИК ---
+            const barCtx = document.getElementById('keyMetricsBarChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Уровень усталости', 'Уровень тревожности'],
+                    datasets: [{
+                        label: 'Баллы',
+                        data: [
+                            reportData.riskScores.burnout_risk,
+                            reportData.riskScores.anxiety_level
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.5)', // Оранжевый для усталости
+                            'rgba(255, 99, 132, 0.5)'  // Красный для тревожности
+                        ],
+                        borderColor: [
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 10,
+                            title: {
+                                display: true,
+                                text: 'Уровень (чем выше, тем хуже)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Ключевые индикаторы',
+                            font: { size: 16 }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", displayReport);
+
+    </script>
+</body>
+</html>
