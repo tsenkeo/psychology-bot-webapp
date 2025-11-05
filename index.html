@@ -34,8 +34,8 @@
 
         .container {
             max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
+            margin: 10px auto; /* ИЗМЕНЕНО: Уменьшены отступы для мобильных */
+            padding: 15px; /* ИЗМЕНЕНО: Уменьшены отступы для мобильных */
             background-color: var(--card-background);
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
@@ -88,8 +88,15 @@
         }
 
         @media (max-width: 768px) {
-            .container { margin: 10px; padding: 15px; }
-            .chart-container { height: 40vh; }
+            .container { 
+                margin: 5px; 
+                padding: 10px; 
+            }
+            .chart-container { 
+                height: 40vh; 
+            }
+            h1 { font-size: 1.5em; }
+            h3 { font-size: 1.2em; }
         }
     </style>
 </head>
@@ -149,16 +156,40 @@
                 riskScores: {
                     burnout_risk: 6,
                     anxiety_level: 5,
-                    theft_risk: 2, // Скрытые риски
-                    insider_threat_risk: 3, // Скрытые риски
-                    corruption_risk: 1 // Скрытые риски
+                    theft_risk: 2,
+                    insider_threat_risk: 3,
+                    corruption_risk: 1
+                },
+                userProfile: {
+                    work_life_balance: "7 - Хорошо",
+                    career_goals: "Развиваться и зарабатывать"
                 }
             };
         }
 
+        // --- ИЗМЕНЕНО: Функции для парсинга данных из текста ---
+        function parseSatisfaction(text) {
+            if (text.includes("Высокий")) return 9;
+            if (text.includes("Средний")) return 6;
+            if (text.includes("Низкий")) return 3;
+            return 5; // По умолчанию
+        }
+
+        function parseWorkLifeBalance(text) {
+            const match = text.match(/(\d+)/);
+            return match ? parseInt(match[0], 10) : 5;
+        }
+        
+        function parseMotivation(text) {
+            // Простая эвристика на основе ключевых слов
+            if (text.includes("деньг") || text.includes("заработ")) return 8;
+            if (text.includes("развити") || text.includes("карьер")) return 7;
+            if (text.includes("команд") || text.includes("коллектив")) return 9;
+            return 6; // По умолчанию
+        }
+
         // Функция для определения общего статуса на основе ОСНОВНЫХ рисков
         function getOverallStatus(riskScores) {
-            // Усредняем только открытые метрики: выгорание и тревожность
             const averageRisk = (riskScores.burnout_risk + riskScores.anxiety_level) / 2;
             if (averageRisk >= 7) return { level: 'Требуется внимание', class: 'status-critical' };
             if (averageRisk >= 4) return { level: 'Есть признаки напряжения', class: 'status-warning' };
@@ -180,7 +211,6 @@
             `;
 
             // --- ГРАФИК 1: РАДАР "КАРТА САМОЧУВСТВИЯ" ---
-            // Показываем только открытые и безопасные метрики
             const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
             new Chart(radarCtx, {
                 type: 'radar',
@@ -191,9 +221,9 @@
                         data: [
                             10 - reportData.riskScores.burnout_risk, // Инвертируем выгорание в энергию
                             reportData.riskScores.anxiety_level,
-                            8, // Можем добавить условную оценку удовлетворенности
-                            7, // И мотивации
-                            6  // И баланса
+                            parseSatisfaction(reportData.publicAnalysis), // ИЗМЕНЕНО: Парсим из текста
+                            parseMotivation(reportData.userProfile.career_goals), // ИЗМЕНЕНО: Парсим из профиля
+                            parseWorkLifeBalance(reportData.userProfile.work_life_balance) // ИЗМЕНЕНО: Парсим из профиля
                         ],
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
