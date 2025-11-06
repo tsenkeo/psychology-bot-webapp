@@ -101,16 +101,6 @@
             font-weight: 600;
         }
 
-        .summary-text {
-            background-color: var(--light-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--primary-color);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
         .satisfaction-badge {
             display: inline-block;
             padding: 8px 16px;
@@ -204,7 +194,7 @@
     <div class="container">
         <div class="header">
             <h1>Анализ профессионального потенциала</h1>
-            <p class="subtitle">Результаты оценки эффективности и развития</p>
+            <p class="subtitle">Ваши показатели эффективности</p>
         </div>
 
         <div id="loading" class="loading">
@@ -221,10 +211,9 @@
             <div class="card">
                 <div class="card-title">
                     <div class="icon">📊</div>
-                    <h3>Краткая сводка</h3>
+                    <h3>Ваши результаты</h3>
                 </div>
                 <div id="satisfaction-badge"></div>
-                <div id="summary-text" class="summary-text"></div>
                 <div id="profile-info"></div>
             </div>
 
@@ -243,7 +232,7 @@
         </div>
 
         <div class="footer">
-            <p>Отчет сформирован на основе анализа ответов</p>
+            <p>Графики сформированы на основе ваших ответов</p>
         </div>
     </div>
 
@@ -283,15 +272,6 @@
             return 'satisfaction-low';
         }
 
-        function getOverallStatus(riskScores) {
-            if (!riskScores) return { level: 'Данные отсутствуют', class: 'status-warning' };
-            
-            const averageRisk = (riskScores.burnout_risk + riskScores.anxiety_level) / 2;
-            if (averageRisk >= 7) return { level: 'Требуется внимание', class: 'status-critical' };
-            if (averageRisk >= 4) return { level: 'Стабильное состояние', class: 'status-warning' };
-            return { level: 'Оптимальные показатели', class: 'status-excellent' };
-        }
-
         function displayReport(reportData) {
             // Скрываем loading и показываем контент
             document.getElementById('loading').style.display = 'none';
@@ -307,14 +287,6 @@
                 `;
             }
 
-            // Отображаем сводку
-            const summaryElement = document.getElementById('summary-text');
-            if (reportData.summary) {
-                summaryElement.innerHTML = reportData.summary;
-            } else {
-                summaryElement.innerHTML = '<p>Подробный анализ доступен в сообщении от бота</p>';
-            }
-
             // Отображаем информацию о профиле
             const profileElement = document.getElementById('profile-info');
             if (reportData.userProfile) {
@@ -324,9 +296,9 @@
                 `;
             }
 
-            // График 1: Радар
+            // График 1: Радар с публичными метриками
             const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
-            if (radarCtx) {
+            if (radarCtx && reportData.metrics) {
                 new Chart(radarCtx, {
                     type: 'radar',
                     data: {
@@ -334,11 +306,11 @@
                         datasets: [{
                             label: 'Ваши показатели',
                             data: [
-                                10 - (reportData.riskScores?.burnout_risk || 5),
-                                10 - (reportData.riskScores?.anxiety_level || 5),
-                                7,
-                                6,
-                                5
+                                reportData.metrics.energy || 5,
+                                10 - (reportData.metrics.stress || 5), // Инвертируем стресс
+                                reportData.metrics.satisfaction || 5,
+                                reportData.metrics.motivation || 5,
+                                reportData.metrics.balance || 5
                             ],
                             backgroundColor: 'rgba(44, 90, 160, 0.2)',
                             borderColor: 'rgba(44, 90, 160, 1)',
@@ -379,40 +351,56 @@
                                     size: window.innerWidth < 480 ? 14 : 16, 
                                     weight: 'normal' 
                                 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const labels = ['Энергия', 'Стрессоустойчивость', 'Удовлетворенность', 'Мотивация', 'Баланс'];
+                                        const label = labels[context.dataIndex];
+                                        let value = context.parsed.r;
+                                        
+                                        // Инвертируем значение стресса обратно
+                                        if (label === 'Стрессоустойчивость') {
+                                            value = 10 - value;
+                                        }
+                                        
+                                        return `${label}: ${value}/10`;
+                                    }
+                                }
                             }
                         }
                     }
                 });
             }
 
-            // График 2: Столбчатая диаграмма
+            // График 2: Столбчатая диаграмма с ключевыми метриками
             const barCtx = document.getElementById('keyMetricsBarChart').getContext('2d');
-            if (barCtx) {
+            if (barCtx && reportData.metrics) {
                 new Chart(barCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['Риск выгорания', 'Уровень тревожности', 'Риск воровства', 'Риск инсайдерства', 'Риск коррупции'],
+                        labels: ['Энергия', 'Уровень стресса', 'Удовлетворенность', 'Мотивация', 'Баланс'],
                         datasets: [{
-                            label: 'Уровень риска (0-10)',
+                            label: 'Баллы (0-10)',
                             data: [
-                                reportData.riskScores?.burnout_risk || 0,
-                                reportData.riskScores?.anxiety_level || 0,
-                                reportData.riskScores?.theft_risk || 0,
-                                reportData.riskScores?.insider_threat_risk || 0,
-                                reportData.riskScores?.corruption_risk || 0
+                                reportData.metrics.energy || 5,
+                                reportData.metrics.stress || 5,
+                                reportData.metrics.satisfaction || 5,
+                                reportData.metrics.motivation || 5,
+                                reportData.metrics.balance || 5
                             ],
                             backgroundColor: [
-                                'rgba(255, 99, 132, 0.7)',
-                                'rgba(54, 162, 235, 0.7)',
-                                'rgba(255, 206, 86, 0.7)',
-                                'rgba(75, 192, 192, 0.7)',
-                                'rgba(153, 102, 255, 0.7)'
+                                'rgba(40, 167, 69, 0.7)',  // Энергия - зеленый
+                                'rgba(255, 99, 132, 0.7)',  // Стресс - красный
+                                'rgba(54, 162, 235, 0.7)',  // Удовлетворенность - синий
+                                'rgba(255, 206, 86, 0.7)',  // Мотивация - желтый
+                                'rgba(153, 102, 255, 0.7)'  // Баланс - фиолетовый
                             ],
                             borderColor: [
+                                'rgba(40, 167, 69, 1)',
                                 'rgba(255, 99, 132, 1)',
                                 'rgba(54, 162, 235, 1)',
                                 'rgba(255, 206, 86, 1)',
-                                'rgba(75, 192, 192, 1)',
                                 'rgba(153, 102, 255, 1)'
                             ],
                             borderWidth: 1
@@ -438,7 +426,7 @@
                             legend: { display: false },
                             title: {
                                 display: true,
-                                text: 'Оценка рисков',
+                                text: 'Ключевые показатели',
                                 font: { 
                                     size: window.innerWidth < 480 ? 14 : 16, 
                                     weight: 'normal' 
