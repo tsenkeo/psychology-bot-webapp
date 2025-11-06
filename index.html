@@ -37,40 +37,41 @@
             color: var(--text-color);
             line-height: 1.6;
             min-height: 100vh;
+            padding: 0;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 15px;
+            padding: 12px;
         }
 
         .header {
             text-align: center;
-            padding: 25px 20px;
+            padding: 20px 15px;
             background: linear-gradient(135deg, var(--primary-color), #3a6bc0);
             color: white;
             border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             box-shadow: 0 4px 15px rgba(44, 90, 160, 0.2);
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .subtitle {
-            font-size: 15px;
+            font-size: 14px;
             opacity: 0.9;
         }
 
         .card {
             background: var(--card-background);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 18px;
+            padding: 16px;
+            margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             border: 1px solid var(--border-color);
         }
@@ -78,26 +79,26 @@
         .card-title {
             display: flex;
             align-items: center;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 2px solid var(--light-color);
         }
 
         .card-title .icon {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             background: var(--light-color);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
-            font-size: 18px;
+            margin-right: 10px;
+            font-size: 16px;
         }
 
         .card-title h3 {
             color: var(--primary-color);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
         }
 
@@ -107,27 +108,76 @@
             border-radius: 20px;
             font-weight: 600;
             color: white;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-size: 14px;
+            text-align: center;
+            width: 100%;
         }
         
         .satisfaction-high { background: linear-gradient(135deg, #28a745, #20c997); }
         .satisfaction-medium { background: linear-gradient(135deg, #ffc107, #fd7e14); }
         .satisfaction-low { background: linear-gradient(135deg, #dc3545, #e83e8c); }
+        .satisfaction-invalid { background: linear-gradient(135deg, #6c757d, #adb5bd); }
+
+        .info-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.5;
+        }
+
+        .info-box strong {
+            color: var(--primary-color);
+        }
 
         .chart-container {
             position: relative;
-            height: 280px;
+            height: 260px;
             width: 100%;
-            margin: 20px 0;
+            margin: 16px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6c757d;
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding: 15px;
+            margin-top: 20px;
+            padding: 12px;
             color: var(--secondary-color);
-            font-size: 13px;
+            font-size: 12px;
             border-top: 1px solid var(--border-color);
         }
 
@@ -146,46 +196,52 @@
             margin: 15px 0;
         }
 
-        /* Улучшения для мобильных устройств */
-        @media (max-width: 480px) {
+        /* Адаптивность для очень маленьких экранов */
+        @media (max-width: 360px) {
             .container {
-                padding: 10px;
+                padding: 8px;
             }
             
             .header {
-                padding: 20px 15px;
-                margin-bottom: 15px;
+                padding: 15px 10px;
+                margin-bottom: 12px;
             }
             
-            h1 {
-                font-size: 20px;
-            }
-            
-            .subtitle {
-                font-size: 14px;
-            }
-            
-            .card {
-                padding: 15px;
-                margin-bottom: 15px;
-            }
-            
-            .chart-container {
-                height: 240px;
-            }
-        }
-
-        @media (max-width: 360px) {
             h1 {
                 font-size: 18px;
             }
             
-            .card-title h3 {
-                font-size: 16px;
+            .subtitle {
+                font-size: 12px;
+            }
+            
+            .card {
+                padding: 12px;
+                margin-bottom: 12px;
             }
             
             .chart-container {
                 height: 220px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+
+        /* Горизонтальная ориентация */
+        @media (min-width: 768px) and (max-height: 500px) {
+            .container {
+                max-width: 700px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+            
+            .card {
+                padding: 12px;
             }
         }
     </style>
@@ -194,6 +250,7 @@
     <div class="container">
         <div class="header">
             <h1>Анализ результатов</h1>
+            <div class="subtitle">Ваш персональный отчет</div>
         </div>
 
         <div id="loading" class="loading">
@@ -210,17 +267,18 @@
             <div class="card">
                 <div class="card-title">
                     <div class="icon">📊</div>
-                    <h3>Ваши результаты</h3>
-                    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                    <p style="margin: 0; font-size: 14px; color: #495057;">
+                    <h3>Общие показатели</h3>
+                </div>
+                <div id="satisfaction-badge"></div>
+                
+                <div class="info-box">
+                    <p>
                         <strong>💡 Как читать графики:</strong><br>
-                        • <strong>Радар</strong> показывает ваш профиль эффективности и усталости<br>
+                        • <strong>Радар</strong> показывает ваш профиль эффективности<br>
                         • <strong>Столбцы</strong> отображают ключевые показатели<br>
                         • <strong>Цель</strong> - равномерное развитие всех навыков
                     </p>
                 </div>
-                </div>
-                <div id="satisfaction-badge"></div>
             </div>
 
             <div class="card">
@@ -233,6 +291,16 @@
                 </div>
                 <div class="chart-container">
                     <canvas id="keyMetricsBarChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card" id="detailed-metrics" style="display: none;">
+                <div class="card-title">
+                    <div class="icon">🔢</div>
+                    <h3>Детальные метрики</h3>
+                </div>
+                <div class="metrics-grid" id="metrics-grid">
+                    <!-- Метрики будут добавлены через JavaScript -->
                 </div>
             </div>
         </div>
@@ -270,12 +338,47 @@
             }
         }
 
+        function validateSatisfaction(satisfaction) {
+            if (!satisfaction || satisfaction === "N/A") return "N/A";
+            
+            // Обрабатываем разные форматы: "X/5", "X/Y", просто число
+            if (satisfaction.includes('/')) {
+                const parts = satisfaction.split('/');
+                const numerator = parseInt(parts[0]);
+                const denominator = parseInt(parts[1]);
+                
+                // Если числитель больше знаменателя, корректируем
+                if (numerator > denominator) {
+                    return `${denominator}/${denominator}`;
+                }
+                return satisfaction;
+            } else {
+                // Если это просто число, преобразуем в формат X/5
+                const value = parseInt(satisfaction);
+                if (value > 5) return "5/5";
+                if (value < 1) return "1/5";
+                return `${value}/5`;
+            }
+        }
+
         function getSatisfactionClass(satisfaction) {
-            if (!satisfaction) return 'satisfaction-medium';
-            const value = parseInt(satisfaction.split('/')[0]);
-            if (value >= 4) return 'satisfaction-high';
-            if (value >= 3) return 'satisfaction-medium';
+            if (!satisfaction || satisfaction === "N/A") return 'satisfaction-invalid';
+            
+            const validated = validateSatisfaction(satisfaction);
+            if (validated === "N/A") return 'satisfaction-invalid';
+            
+            const value = parseInt(validated.split('/')[0]);
+            const maxValue = parseInt(validated.split('/')[1]);
+            const percentage = (value / maxValue) * 100;
+            
+            if (percentage >= 80) return 'satisfaction-high';
+            if (percentage >= 60) return 'satisfaction-medium';
             return 'satisfaction-low';
+        }
+
+        function validateMetricValue(value, max = 10) {
+            if (typeof value !== 'number' || isNaN(value)) return 5;
+            return Math.max(0, Math.min(max, value));
         }
 
         function displayReport(reportData) {
@@ -283,19 +386,36 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('report-content').style.display = 'block';
 
-            // Отображаем удовлетворенность
+            // Валидируем и отображаем удовлетворенность
             const satisfactionBadge = document.getElementById('satisfaction-badge');
             if (reportData.satisfaction) {
+                const validatedSatisfaction = validateSatisfaction(reportData.satisfaction);
                 satisfactionBadge.innerHTML = `
-                    <div class="satisfaction-badge ${getSatisfactionClass(reportData.satisfaction)}">
-                        Уровень удовлетворенности: ${reportData.satisfaction}
+                    <div class="satisfaction-badge ${getSatisfactionClass(validatedSatisfaction)}">
+                        Уровень удовлетворенности: ${validatedSatisfaction}
+                    </div>
+                `;
+            } else {
+                satisfactionBadge.innerHTML = `
+                    <div class="satisfaction-badge satisfaction-invalid">
+                        Уровень удовлетворенности: не доступен
                     </div>
                 `;
             }
 
+            // Валидируем метрики
+            const metrics = reportData.metrics || {};
+            const validatedMetrics = {
+                energy: validateMetricValue(metrics.energy),
+                stress: validateMetricValue(metrics.stress),
+                satisfaction: validateMetricValue(metrics.satisfaction),
+                motivation: validateMetricValue(metrics.motivation),
+                balance: validateMetricValue(metrics.balance)
+            };
+
             // График 1: Радар с публичными метриками
             const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
-            if (radarCtx && reportData.metrics) {
+            if (radarCtx) {
                 new Chart(radarCtx, {
                     type: 'radar',
                     data: {
@@ -303,11 +423,11 @@
                         datasets: [{
                             label: 'Ваши показатели',
                             data: [
-                                reportData.metrics.energy || 5,
-                                10 - (reportData.metrics.stress || 5), // Инвертируем стресс
-                                reportData.metrics.satisfaction || 5,
-                                reportData.metrics.motivation || 5,
-                                reportData.metrics.balance || 5
+                                validatedMetrics.energy,
+                                10 - validatedMetrics.stress, // Инвертируем стресс для стрессоустойчивости
+                                validatedMetrics.satisfaction,
+                                validatedMetrics.motivation,
+                                validatedMetrics.balance
                             ],
                             backgroundColor: 'rgba(44, 90, 160, 0.2)',
                             borderColor: 'rgba(44, 90, 160, 1)',
@@ -315,7 +435,8 @@
                             pointBackgroundColor: 'rgba(44, 90, 160, 1)',
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(44, 90, 160, 1)'
+                            pointHoverBorderColor: 'rgba(44, 90, 160, 1)',
+                            pointRadius: 4
                         }]
                     },
                     options: {
@@ -323,32 +444,31 @@
                         maintainAspectRatio: false,
                         scales: {
                             r: {
-                                angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                                grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                                angleLines: { 
+                                    color: 'rgba(0, 0, 0, 0.1)',
+                                    lineWidth: 1
+                                },
+                                grid: { 
+                                    color: 'rgba(0, 0, 0, 0.1)',
+                                    circular: true
+                                },
                                 pointLabels: { 
                                     font: { 
-                                        size: window.innerWidth < 480 ? 11 : 13 
-                                    } 
+                                        size: window.innerWidth < 360 ? 10 : 12,
+                                        family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                    },
+                                    color: '#495057'
                                 },
-                                suggestedMin: 0,
-                                suggestedMax: 10,
+                                min: 0,
+                                max: 10,
                                 ticks: { 
-                                    backdropColor: 'transparent', 
-                                    color: '#666',
+                                    display: false,
                                     stepSize: 2
                                 }
                             }
                         },
                         plugins: {
                             legend: { display: false },
-                            title: { 
-                                display: true, 
-                                text: 'Профиль эффективности',
-                                font: { 
-                                    size: window.innerWidth < 480 ? 14 : 16, 
-                                    weight: 'normal' 
-                                }
-                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -356,7 +476,7 @@
                                         const label = labels[context.dataIndex];
                                         let value = context.parsed.r;
                                         
-                                        // Инвертируем значение стресса обратно
+                                        // Инвертируем значение стресса обратно для отображения
                                         if (label === 'Стрессоустойчивость') {
                                             value = 10 - value;
                                         }
@@ -365,6 +485,11 @@
                                     }
                                 }
                             }
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.1
+                            }
                         }
                     }
                 });
@@ -372,22 +497,22 @@
 
             // График 2: Столбчатая диаграмма с ключевыми метриками
             const barCtx = document.getElementById('keyMetricsBarChart').getContext('2d');
-            if (barCtx && reportData.metrics) {
+            if (barCtx) {
                 new Chart(barCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['Энергия', 'Уровень стресса', 'Удовлетворенность', 'Мотивация', 'Баланс'],
+                        labels: ['Энергия', 'Стресс', 'Удовлетворенность', 'Мотивация', 'Баланс'],
                         datasets: [{
                             label: 'Баллы (0-10)',
                             data: [
-                                reportData.metrics.energy || 5,
-                                reportData.metrics.stress || 5,
-                                reportData.metrics.satisfaction || 5,
-                                reportData.metrics.motivation || 5,
-                                reportData.metrics.balance || 5
+                                validatedMetrics.energy,
+                                validatedMetrics.stress,
+                                validatedMetrics.satisfaction,
+                                validatedMetrics.motivation,
+                                validatedMetrics.balance
                             ],
                             backgroundColor: [
-                                'rgba(40, 167, 69, 0.7)',  // Энергия - зеленый
+                                'rgba(40, 167, 69, 0.7)',   // Энергия - зеленый
                                 'rgba(255, 99, 132, 0.7)',  // Стресс - красный
                                 'rgba(54, 162, 235, 0.7)',  // Удовлетворенность - синий
                                 'rgba(255, 206, 86, 0.7)',  // Мотивация - желтый
@@ -400,7 +525,8 @@
                                 'rgba(255, 206, 86, 1)',
                                 'rgba(153, 102, 255, 1)'
                             ],
-                            borderWidth: 1
+                            borderWidth: 1,
+                            borderRadius: 4
                         }]
                     },
                     options: {
@@ -409,30 +535,73 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                suggestedMax: 10,
-                                title: {
-                                    display: true,
-                                    text: 'Баллы'
+                                max: 10,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
                                 },
                                 ticks: {
-                                    stepSize: 2
+                                    stepSize: 2,
+                                    font: {
+                                        size: window.innerWidth < 360 ? 10 : 11
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: window.innerWidth < 360 ? 10 : 11
+                                    }
                                 }
                             }
                         },
                         plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Ключевые показатели',
-                                font: { 
-                                    size: window.innerWidth < 480 ? 14 : 16, 
-                                    weight: 'normal' 
+                            legend: { 
+                                display: false 
+                            },
+                            tooltip: {
+                                displayColors: false,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        return tooltipItems[0].label;
+                                    },
+                                    label: function(context) {
+                                        return `Оценка: ${context.parsed.y}/10`;
+                                    }
                                 }
                             }
                         }
                     }
                 });
             }
+
+            // Показываем детальные метрики
+            document.getElementById('detailed-metrics').style.display = 'block';
+            const metricsGrid = document.getElementById('metrics-grid');
+            metricsGrid.innerHTML = `
+                <div class="metric-item">
+                    <div class="metric-value">${validatedMetrics.energy}/10</div>
+                    <div class="metric-label">Энергия</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${validatedMetrics.stress}/10</div>
+                    <div class="metric-label">Уровень стресса</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${validatedMetrics.satisfaction}/10</div>
+                    <div class="metric-label">Удовлетворенность</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${validatedMetrics.motivation}/10</div>
+                    <div class="metric-label">Мотивация</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${validatedMetrics.balance}/10</div>
+                    <div class="metric-label">Баланс</div>
+                </div>
+            `;
         }
 
         function showError() {
