@@ -194,7 +194,6 @@
     <div class="container">
         <div class="header">
             <h1>Анализ профессионального потенциала</h1>
-            <p class="subtitle">Ваши показатели эффективности</p>
         </div>
 
         <div id="loading" class="loading">
@@ -214,7 +213,6 @@
                     <h3>Ваши результаты</h3>
                 </div>
                 <div id="satisfaction-badge"></div>
-                <div id="profile-info"></div>
             </div>
 
             <div class="card">
@@ -284,15 +282,6 @@
                     <div class="satisfaction-badge ${getSatisfactionClass(reportData.satisfaction)}">
                         Уровень удовлетворенности: ${reportData.satisfaction}
                     </div>
-                `;
-            }
-
-            // Отображаем информацию о профиле
-            const profileElement = document.getElementById('profile-info');
-            if (reportData.userProfile) {
-                profileElement.innerHTML = `
-                    <p><strong>Должность:</strong> ${reportData.userProfile.position || 'N/A'}</p>
-                    <p><strong>Отдел:</strong> ${reportData.userProfile.department || 'N/A'}</p>
                 `;
             }
 
