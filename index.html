@@ -104,14 +104,15 @@
 
         .satisfaction-badge {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 20px;
             font-weight: 600;
             color: white;
-            margin-bottom: 12px;
-            font-size: 14px;
+            margin-bottom: 15px;
+            font-size: 15px;
             text-align: center;
             width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .satisfaction-high { background: linear-gradient(135deg, #28a745, #20c997); }
@@ -154,10 +155,16 @@
 
         .metric-item {
             text-align: center;
-            padding: 10px;
+            padding: 12px 8px;
             background: #f8f9fa;
             border-radius: 8px;
             border: 1px solid #e9ecef;
+            transition: transform 0.2s;
+        }
+
+        .metric-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .metric-value {
@@ -170,6 +177,12 @@
         .metric-label {
             font-size: 12px;
             color: #6c757d;
+        }
+
+        .metric-description {
+            font-size: 10px;
+            color: #adb5bd;
+            margin-top: 4px;
         }
 
         .footer {
@@ -187,6 +200,21 @@
             color: var(--secondary-color);
         }
 
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .error {
             text-align: center;
             padding: 30px 20px;
@@ -196,7 +224,7 @@
             margin: 15px 0;
         }
 
-        /* Адаптивность для очень маленьких экранов */
+        /* Адаптивность */
         @media (max-width: 360px) {
             .container {
                 padding: 8px;
@@ -211,13 +239,8 @@
                 font-size: 18px;
             }
             
-            .subtitle {
-                font-size: 12px;
-            }
-            
             .card {
                 padding: 12px;
-                margin-bottom: 12px;
             }
             
             .chart-container {
@@ -226,11 +249,9 @@
             
             .metrics-grid {
                 grid-template-columns: 1fr;
-                gap: 8px;
             }
         }
 
-        /* Горизонтальная ориентация */
         @media (min-width: 768px) and (max-height: 500px) {
             .container {
                 max-width: 700px;
@@ -238,10 +259,6 @@
             
             .chart-container {
                 height: 200px;
-            }
-            
-            .card {
-                padding: 12px;
             }
         }
     </style>
@@ -254,6 +271,7 @@
         </div>
 
         <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
             <h2>Формирование отчета</h2>
             <p>Идет обработка данных...</p>
         </div>
@@ -273,10 +291,10 @@
                 
                 <div class="info-box">
                     <p>
-                        <strong>💡 Как читать графики:</strong><br>
-                        • <strong>Радар</strong> показывает ваш профиль эффективности<br>
-                        • <strong>Столбцы</strong> отображают ключевые показатели<br>
-                        • <strong>Цель</strong> - равномерное развитие всех навыков
+                        <strong>💡 Как читать отчет:</strong><br>
+                        • Оценки основаны на ваших ответах в анкете<br>
+                        • Радар показывает профиль эффективности<br>
+                        • Столбцы отображают ключевые показатели
                     </p>
                 </div>
             </div>
@@ -294,7 +312,7 @@
                 </div>
             </div>
 
-            <div class="card" id="detailed-metrics" style="display: none;">
+            <div class="card">
                 <div class="card-title">
                     <div class="icon">🔢</div>
                     <h3>Детальные метрики</h3>
@@ -306,7 +324,7 @@
         </div>
 
         <div class="footer">
-            <p>Графики сформированы на основе ваших ответов</p>
+            <p>Отчет сформирован на основе анализа ваших ответов</p>
         </div>
     </div>
 
@@ -322,14 +340,10 @@
 
         function decompressData(base64Data) {
             try {
-                // Декодируем base64
                 const compressedData = atob(base64Data);
-                // Преобразуем в Uint8Array
                 const charData = compressedData.split('').map(function(x){return x.charCodeAt(0);});
                 const binData = new Uint8Array(charData);
-                // Распаковываем с помощью pako
                 const decompressed = pako.inflate(binData);
-                // Преобразуем обратно в строку
                 const strData = String.fromCharCode.apply(null, decompressed);
                 return JSON.parse(strData);
             } catch (e) {
@@ -339,21 +353,18 @@
         }
 
         function validateSatisfaction(satisfaction) {
-            if (!satisfaction || satisfaction === "N/A") return "N/A";
+            if (!satisfaction || satisfaction === "N/A") return "3/5";
             
-            // Обрабатываем разные форматы: "X/5", "X/Y", просто число
             if (satisfaction.includes('/')) {
                 const parts = satisfaction.split('/');
                 const numerator = parseInt(parts[0]);
                 const denominator = parseInt(parts[1]);
                 
-                // Если числитель больше знаменателя, корректируем
-                if (numerator > denominator) {
-                    return `${denominator}/${denominator}`;
-                }
+                // Гарантируем корректный диапазон
+                if (numerator > denominator) return `${denominator}/${denominator}`;
+                if (numerator < 1) return `1/${denominator}`;
                 return satisfaction;
             } else {
-                // Если это просто число, преобразуем в формат X/5
                 const value = parseInt(satisfaction);
                 if (value > 5) return "5/5";
                 if (value < 1) return "1/5";
@@ -362,48 +373,42 @@
         }
 
         function getSatisfactionClass(satisfaction) {
-            if (!satisfaction || satisfaction === "N/A") return 'satisfaction-invalid';
+            if (!satisfaction) return 'satisfaction-medium';
             
             const validated = validateSatisfaction(satisfaction);
-            if (validated === "N/A") return 'satisfaction-invalid';
-            
             const value = parseInt(validated.split('/')[0]);
-            const maxValue = parseInt(validated.split('/')[1]);
-            const percentage = (value / maxValue) * 100;
             
-            if (percentage >= 80) return 'satisfaction-high';
-            if (percentage >= 60) return 'satisfaction-medium';
+            if (value >= 4) return 'satisfaction-high';
+            if (value >= 3) return 'satisfaction-medium';
             return 'satisfaction-low';
         }
 
         function validateMetricValue(value, max = 10) {
             if (typeof value !== 'number' || isNaN(value)) return 5;
-            return Math.max(0, Math.min(max, value));
+            return Math.max(1, Math.min(max, Math.round(value)));
+        }
+
+        function getMetricColor(value, max = 10) {
+            const percentage = (value / max) * 100;
+            if (percentage >= 70) return '#28a745';
+            if (percentage >= 40) return '#ffc107';
+            return '#dc3545';
         }
 
         function displayReport(reportData) {
-            // Скрываем loading и показываем контент
             document.getElementById('loading').style.display = 'none';
             document.getElementById('report-content').style.display = 'block';
 
-            // Валидируем и отображаем удовлетворенность
+            // Валидация и отображение удовлетворенности
             const satisfactionBadge = document.getElementById('satisfaction-badge');
-            if (reportData.satisfaction) {
-                const validatedSatisfaction = validateSatisfaction(reportData.satisfaction);
-                satisfactionBadge.innerHTML = `
-                    <div class="satisfaction-badge ${getSatisfactionClass(validatedSatisfaction)}">
-                        Уровень удовлетворенности: ${validatedSatisfaction}
-                    </div>
-                `;
-            } else {
-                satisfactionBadge.innerHTML = `
-                    <div class="satisfaction-badge satisfaction-invalid">
-                        Уровень удовлетворенности: не доступен
-                    </div>
-                `;
-            }
+            const validatedSatisfaction = validateSatisfaction(reportData.satisfaction);
+            satisfactionBadge.innerHTML = `
+                <div class="satisfaction-badge ${getSatisfactionClass(validatedSatisfaction)}">
+                    Общая оценка: ${validatedSatisfaction}
+                </div>
+            `;
 
-            // Валидируем метрики
+            // Валидация метрик
             const metrics = reportData.metrics || {};
             const validatedMetrics = {
                 energy: validateMetricValue(metrics.energy),
@@ -413,7 +418,7 @@
                 balance: validateMetricValue(metrics.balance)
             };
 
-            // График 1: Радар с публичными метриками
+            // График 1: Радар
             const radarCtx = document.getElementById('wellbeingRadarChart').getContext('2d');
             if (radarCtx) {
                 new Chart(radarCtx, {
@@ -424,7 +429,7 @@
                             label: 'Ваши показатели',
                             data: [
                                 validatedMetrics.energy,
-                                10 - validatedMetrics.stress, // Инвертируем стресс для стрессоустойчивости
+                                10 - validatedMetrics.stress,
                                 validatedMetrics.satisfaction,
                                 validatedMetrics.motivation,
                                 validatedMetrics.balance
@@ -444,27 +449,15 @@
                         maintainAspectRatio: false,
                         scales: {
                             r: {
-                                angleLines: { 
-                                    color: 'rgba(0, 0, 0, 0.1)',
-                                    lineWidth: 1
-                                },
-                                grid: { 
-                                    color: 'rgba(0, 0, 0, 0.1)',
-                                    circular: true
-                                },
+                                angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' },
                                 pointLabels: { 
-                                    font: { 
-                                        size: window.innerWidth < 360 ? 10 : 12,
-                                        family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-                                    },
+                                    font: { size: window.innerWidth < 360 ? 10 : 12 },
                                     color: '#495057'
                                 },
                                 min: 0,
                                 max: 10,
-                                ticks: { 
-                                    display: false,
-                                    stepSize: 2
-                                }
+                                ticks: { display: false }
                             }
                         },
                         plugins: {
@@ -473,29 +466,20 @@
                                 callbacks: {
                                     label: function(context) {
                                         const labels = ['Энергия', 'Стрессоустойчивость', 'Удовлетворенность', 'Мотивация', 'Баланс'];
-                                        const label = labels[context.dataIndex];
                                         let value = context.parsed.r;
-                                        
-                                        // Инвертируем значение стресса обратно для отображения
-                                        if (label === 'Стрессоустойчивость') {
+                                        if (labels[context.dataIndex] === 'Стрессоустойчивость') {
                                             value = 10 - value;
                                         }
-                                        
-                                        return `${label}: ${value}/10`;
+                                        return `${labels[context.dataIndex]}: ${value}/10`;
                                     }
                                 }
-                            }
-                        },
-                        elements: {
-                            line: {
-                                tension: 0.1
                             }
                         }
                     }
                 });
             }
 
-            // График 2: Столбчатая диаграмма с ключевыми метриками
+            // График 2: Столбчатая диаграмма
             const barCtx = document.getElementById('keyMetricsBarChart').getContext('2d');
             if (barCtx) {
                 new Chart(barCtx, {
@@ -503,7 +487,6 @@
                     data: {
                         labels: ['Энергия', 'Стресс', 'Удовлетворенность', 'Мотивация', 'Баланс'],
                         datasets: [{
-                            label: 'Баллы (0-10)',
                             data: [
                                 validatedMetrics.energy,
                                 validatedMetrics.stress,
@@ -512,18 +495,11 @@
                                 validatedMetrics.balance
                             ],
                             backgroundColor: [
-                                'rgba(40, 167, 69, 0.7)',   // Энергия - зеленый
-                                'rgba(255, 99, 132, 0.7)',  // Стресс - красный
-                                'rgba(54, 162, 235, 0.7)',  // Удовлетворенность - синий
-                                'rgba(255, 206, 86, 0.7)',  // Мотивация - желтый
-                                'rgba(153, 102, 255, 0.7)'  // Баланс - фиолетовый
-                            ],
-                            borderColor: [
-                                'rgba(40, 167, 69, 1)',
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 206, 86, 1)',
-                                'rgba(153, 102, 255, 1)'
+                                getMetricColor(validatedMetrics.energy),
+                                getMetricColor(10 - validatedMetrics.stress),
+                                getMetricColor(validatedMetrics.satisfaction),
+                                getMetricColor(validatedMetrics.motivation),
+                                getMetricColor(validatedMetrics.balance)
                             ],
                             borderWidth: 1,
                             borderRadius: 4
@@ -536,37 +512,18 @@
                             y: {
                                 beginAtZero: true,
                                 max: 10,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                },
-                                ticks: {
-                                    stepSize: 2,
-                                    font: {
-                                        size: window.innerWidth < 360 ? 10 : 11
-                                    }
-                                }
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: { stepSize: 2 }
                             },
                             x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        size: window.innerWidth < 360 ? 10 : 11
-                                    }
-                                }
+                                grid: { display: false }
                             }
                         },
                         plugins: {
-                            legend: { 
-                                display: false 
-                            },
+                            legend: { display: false },
                             tooltip: {
                                 displayColors: false,
                                 callbacks: {
-                                    title: function(tooltipItems) {
-                                        return tooltipItems[0].label;
-                                    },
                                     label: function(context) {
                                         return `Оценка: ${context.parsed.y}/10`;
                                     }
@@ -577,29 +534,28 @@
                 });
             }
 
-            // Показываем детальные метрики
-            document.getElementById('detailed-metrics').style.display = 'block';
+            // Детальные метрики
             const metricsGrid = document.getElementById('metrics-grid');
             metricsGrid.innerHTML = `
                 <div class="metric-item">
-                    <div class="metric-value">${validatedMetrics.energy}/10</div>
-                    <div class="metric-label">Энергия</div>
+                    <div class="metric-value" style="color: ${getMetricColor(validatedMetrics.energy)}">${validatedMetrics.energy}/10</div>
+                    <div class="metric-label">Уровень энергии</div>
+                    <div class="metric-description">Работоспособность</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">${validatedMetrics.stress}/10</div>
-                    <div class="metric-label">Уровень стресса</div>
+                    <div class="metric-value" style="color: ${getMetricColor(10 - validatedMetrics.stress)}">${10 - validatedMetrics.stress}/10</div>
+                    <div class="metric-label">Стрессоустойчивость</div>
+                    <div class="metric-description">Управление стрессом</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">${validatedMetrics.satisfaction}/10</div>
+                    <div class="metric-value" style="color: ${getMetricColor(validatedMetrics.satisfaction)}">${validatedMetrics.satisfaction}/10</div>
                     <div class="metric-label">Удовлетворенность</div>
+                    <div class="metric-description">Работа и условия</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">${validatedMetrics.motivation}/10</div>
+                    <div class="metric-value" style="color: ${getMetricColor(validatedMetrics.motivation)}">${validatedMetrics.motivation}/10</div>
                     <div class="metric-label">Мотивация</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-value">${validatedMetrics.balance}/10</div>
-                    <div class="metric-label">Баланс</div>
+                    <div class="metric-description">Вовлеченность</div>
                 </div>
             `;
         }
@@ -614,7 +570,6 @@
             const encodedData = getQueryParam('data');
             
             if (encodedData) {
-                // Имитация загрузки для лучшего UX
                 setTimeout(() => {
                     try {
                         const reportData = decompressData(encodedData);
